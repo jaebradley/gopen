@@ -9,7 +9,7 @@
   "license": "MIT",
   "preferGlobal": true,
   "bin": {
-    "gopen": "index.js"
+    "gopen": "git-open.js"
   },
   "dependencies": {
     "commander": "^2.9.0"
