@@ -37,4 +37,8 @@ function openGitRepositoryPage() {
   open(gitRepositoryUrl);
 }
 
+function remoteBranchExists() {
+  
+}
+
 openGitRepositoryPage();
