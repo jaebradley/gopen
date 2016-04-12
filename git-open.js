@@ -7,22 +7,21 @@ var open = require('open');
 
 const gitBranchCommand = "git rev-parse --abbrev-ref HEAD";
 const gitRemotOriginUrlCommand = "git config remote.origin.url";
+const gitRemoteBranchesCommand = "git branch -r";
 
 function buildGitRepositoryUrl(gitBranchName, gitBaseUrl) {
   if ("master" == gitBranchName) {
     return gitBaseUrl;
   }
-  return gitBaseUrl + gitBranchName;
+  return gitBaseUrl + "/tree/" + gitBranchName;
 }
 
 function getGitBranchName() {
-  var branchName = shelljs.exec(gitBranchCommand).stdout;
-  return branchName.trim();
+  return shelljs.exec(gitBranchCommand).stdout.trim();
 }
 
 function getGitRemoteOriginUrl() {
-  var remoteOriginUrl = shelljs.exec(gitRemotOriginUrlCommand).stdout;
-  return remoteOriginUrl.trim();
+  return shelljs.exec(gitRemotOriginUrlCommand).stdout.trim();
 }
 
 function getGitBaseUrl(gitRemoteOriginUrl) {
@@ -34,7 +33,28 @@ function openGitRepositoryPage() {
   const gitRemoteOriginUrl = getGitRemoteOriginUrl();
   const gitBaseUrl = getGitBaseUrl(gitRemoteOriginUrl);
   const gitRepositoryUrl = buildGitRepositoryUrl(gitBranchName, gitBaseUrl);
-  open(gitRepositoryUrl);
+  if (remoteBranchExists(gitBranchName)) {
+    open(gitRepositoryUrl);
+  } else {
+    console.log("remote branch doesn't exist - try pushing");
+  }
+  
+}
+
+function parseRemoteGitBranchName(remoteGitBranchName) {
+  return remoteGitBranchName.substring(remoteGitBranchName.lastIndexOf("/") + 1);
+}
+
+function getRemoteGitBranches() {
+  var branchNames = [];
+  shelljs.exec(gitRemoteBranchesCommand).stdout.trim().split("\n").forEach(function(remoteBranchName) {
+    branchNames.push(parseRemoteGitBranchName(remoteBranchName).trim());
+  });
+  return branchNames;
+}
+
+function remoteBranchExists(localGitBranchName) {
+  return getRemoteGitBranches().indexOf(localGitBranchName) > -1;
 }
 
 openGitRepositoryPage();
