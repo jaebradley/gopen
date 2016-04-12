@@ -12,6 +12,8 @@
     "gopen": "git-open.js"
   },
   "dependencies": {
-    "commander": "^2.9.0"
+    "commander": "^2.9.0",
+    "open": "^0.0.5",
+    "shelljs": "^0.6.0"
   }
 }
