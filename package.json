@@ -1,0 +1,14 @@
+{
+  "name": "gopen",
+  "version": "1.0.0",
+  "description": "opens git",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Jae Bradley",
+  "license": "MIT",
+  "preferGlobal": true,
+  "bin": {
+    "gopen": "index.js"
+  }
+}
