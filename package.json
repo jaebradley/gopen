@@ -10,5 +10,8 @@
   "preferGlobal": true,
   "bin": {
     "gopen": "index.js"
+  },
+  "dependencies": {
+    "commander": "^2.9.0"
   }
 }
