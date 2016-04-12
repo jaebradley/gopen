@@ -1,5 +1,5 @@
 {
-  "name": "gopen",
+  "name": "opengit",
   "version": "1.0.0",
   "description": "opens git",
   "scripts": {
@@ -9,7 +9,7 @@
   "license": "MIT",
   "preferGlobal": true,
   "bin": {
-    "gopen": "git-open.js"
+    "opengit": "git-open.js"
   },
   "dependencies": {
     "commander": "^2.9.0",
