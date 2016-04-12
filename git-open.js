@@ -12,7 +12,7 @@ function buildGitRepositoryUrl(gitBranchName, gitBaseUrl) {
   if ("master" == gitBranchName) {
     return gitBaseUrl;
   }
-  return gitBaseUrl + gitBranchName;
+  return gitBaseUrl + "/" + gitBranchName;
 }
 
 function getGitBranchName() {
