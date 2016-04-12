@@ -33,7 +33,7 @@ function openGitRepositoryPage() {
   const gitRemoteOriginUrl = getGitRemoteOriginUrl();
   const gitBaseUrl = getGitBaseUrl(gitRemoteOriginUrl);
   const gitRepositoryUrl = buildGitRepositoryUrl(gitBranchName, gitBaseUrl);
-  if (remoteBranchExists) {
+  if (remoteBranchExists(gitBranchName)) {
     open(gitRepositoryUrl);
   } else {
     console.log("remote branch doesn't exist - try pushing");
@@ -54,7 +54,7 @@ function getRemoteGitBranches() {
 }
 
 function remoteBranchExists(localGitBranchName) {
-  return getRemoteGitBranches().contains(localGitBranchName);
+  return getRemoteGitBranches().indexOf(localGitBranchName) > -1;
 }
 
 openGitRepositoryPage();
