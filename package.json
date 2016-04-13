@@ -1,6 +1,6 @@
 {
-  "name": "gopen",
-  "version": "1.0.0",
+  "name": "opengit",
+  "version": "1.0.2",
   "description": "opens git",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -9,11 +9,15 @@
   "license": "MIT",
   "preferGlobal": true,
   "bin": {
-    "gopen": "git-open.js"
+    "opengit": "git-open.js"
   },
   "dependencies": {
     "commander": "^2.9.0",
     "open": "^0.0.5",
     "shelljs": "^0.6.0"
-  }
+  },
+  "repository": {
+     "type": "git",
+     "url": "https://github.com/jaebradley/gopen/tree/master"
+   }
 }

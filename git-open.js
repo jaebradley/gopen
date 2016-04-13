@@ -3,11 +3,14 @@
 'use strict';
 
 var shelljs = require('shelljs');
+var program = require('commander');
 var open = require('open');
 
 const gitBranchCommand = "git rev-parse --abbrev-ref HEAD";
 const gitRemotOriginUrlCommand = "git config remote.origin.url";
 const gitRemoteBranchesCommand = "git branch -r";
+const gitHubUserIssues = "https://github.com/issues";
+const gitHubPullRequests = "https://github.com/pulls";
 
 function buildGitRepositoryUrl(gitBranchName, gitBaseUrl) {
   if ("master" == gitBranchName) {
@@ -17,28 +20,23 @@ function buildGitRepositoryUrl(gitBranchName, gitBaseUrl) {
 }
 
 function getGitBranchName() {
-  return shelljs.exec(gitBranchCommand).stdout.trim();
+  return shelljs.exec(gitBranchCommand, {silent : true})
+                .stdout
+                .trim();
 }
 
 function getGitRemoteOriginUrl() {
-  return shelljs.exec(gitRemotOriginUrlCommand).stdout.trim();
+  return shelljs.exec(gitRemotOriginUrlCommand, {silent : true})
+                .stdout
+                .trim();
 }
 
-function getGitBaseUrl(gitRemoteOriginUrl) {
-  return gitRemoteOriginUrl.substring(0, gitRemoteOriginUrl.lastIndexOf("."));
+function parseGitRemoteOriginUrl(gitRemoteOriginUrl) {
+  return gitRemoteOriginUrl.substring(gitRemoteOriginUrl.lastIndexOf("github.com") + 11, gitRemoteOriginUrl.lastIndexOf("."));
 }
 
-function openGitRepositoryPage() {
-  const gitBranchName = getGitBranchName();
-  const gitRemoteOriginUrl = getGitRemoteOriginUrl();
-  const gitBaseUrl = getGitBaseUrl(gitRemoteOriginUrl);
-  const gitRepositoryUrl = buildGitRepositoryUrl(gitBranchName, gitBaseUrl);
-  if (remoteBranchExists(gitBranchName)) {
-    open(gitRepositoryUrl);
-  } else {
-    console.log("remote branch doesn't exist - try pushing");
-  }
-  
+function getGitBaseUrl() {
+  return "https://github.com/" + parseGitRemoteOriginUrl(getGitRemoteOriginUrl());
 }
 
 function parseRemoteGitBranchName(remoteGitBranchName) {
@@ -47,9 +45,13 @@ function parseRemoteGitBranchName(remoteGitBranchName) {
 
 function getRemoteGitBranches() {
   var branchNames = [];
-  shelljs.exec(gitRemoteBranchesCommand).stdout.trim().split("\n").forEach(function(remoteBranchName) {
-    branchNames.push(parseRemoteGitBranchName(remoteBranchName).trim());
-  });
+  shelljs.exec(gitRemoteBranchesCommand, {silent : true})
+         .stdout
+         .trim()
+         .split("\n")
+         .forEach(function(remoteBranchName) {
+            branchNames.push(parseRemoteGitBranchName(remoteBranchName).trim());
+          });
   return branchNames;
 }
 
@@ -57,4 +59,44 @@ function remoteBranchExists(localGitBranchName) {
   return getRemoteGitBranches().indexOf(localGitBranchName) > -1;
 }
 
-openGitRepositoryPage();
+// Main run method
+function run() {
+
+  const gitBranchName = getGitBranchName();
+  if (!remoteBranchExists(gitBranchName)) {
+    console.log("remote branch doesn't exist - try pushing");
+    return;
+  }
+
+  program
+    .version('0.0.1')
+    .option('-i --issues', 'lookup issues')
+    .option('-p --pulls', 'lookup pull requests')
+    .option('-a --all', 'lookup all')
+    .parse(process.argv);
+    
+  if (!program.issues && !program.pulls) {
+    console.log(buildGitRepositoryUrl(gitBranchName, getGitBaseUrl()));
+    open(buildGitRepositoryUrl(gitBranchName, getGitBaseUrl()));
+    return;
+  }
+
+  if (program.all && program.issues) {
+    open(gitHubUserIssues);
+  }
+
+  else if (program.issues) {
+    open(getGitBaseUrl() + "/issues");
+  }
+
+  if (program.all && program.pulls) {
+    open(gitHubPullRequests);
+  }
+
+  else if (program.pulls) {
+    open(getGitBaseUrl() + "/pulls");
+  }
+
+}
+
+run();
