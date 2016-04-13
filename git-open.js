@@ -32,10 +32,11 @@ function getGitRemoteOriginUrl() {
 }
 
 function parseGitRemoteOriginUrl(gitRemoteOriginUrl) {
-  return gitRemoteOriginUrl.substring(0, gitRemoteOriginUrl.lastIndexOf("."));
+  return gitRemoteOriginUrl.substring(gitRemoteOriginUrl.lastIndexOf("github.com") + 11, gitRemoteOriginUrl.lastIndexOf("."));
 }
 
 function getGitBaseUrl() {
+  console.log(parseGitRemoteOriginUrl(getGitRemoteOriginUrl()));
   return parseGitRemoteOriginUrl(getGitRemoteOriginUrl());
 }
 
