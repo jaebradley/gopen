@@ -36,8 +36,7 @@ function parseGitRemoteOriginUrl(gitRemoteOriginUrl) {
 }
 
 function getGitBaseUrl() {
-  console.log(parseGitRemoteOriginUrl(getGitRemoteOriginUrl()));
-  return parseGitRemoteOriginUrl(getGitRemoteOriginUrl());
+  return "https://github.com/" + parseGitRemoteOriginUrl(getGitRemoteOriginUrl());
 }
 
 function parseRemoteGitBranchName(remoteGitBranchName) {
@@ -70,13 +69,14 @@ function run() {
   }
 
   program
-    .version('0.0.01')
+    .version('0.0.1')
     .option('-i --issues', 'lookup issues')
     .option('-p --pulls', 'lookup pull requests')
     .option('-a --all', 'lookup all')
     .parse(process.argv);
     
   if (!program.issues && !program.pulls) {
+    console.log(buildGitRepositoryUrl(gitBranchName, getGitBaseUrl()));
     open(buildGitRepositoryUrl(gitBranchName, getGitBaseUrl()));
     return;
   }
