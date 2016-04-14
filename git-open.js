@@ -89,7 +89,6 @@ function run() {
     .parse(process.argv);
     
   if (!program.issues && !program.pulls) {
-    console.log(buildGitRepositoryUrl(gitBranchName, getGitBaseUrl()));
     open(buildGitRepositoryUrl(gitBranchName, getGitBaseUrl()));
     return;
   }
