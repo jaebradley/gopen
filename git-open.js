@@ -11,6 +11,14 @@ const gitRemotOriginUrlCommand = "git config remote.origin.url";
 const gitRemoteBranchesCommand = "git branch -r";
 const gitHubUserIssues = "https://github.com/issues";
 const gitHubPullRequests = "https://github.com/pulls";
+const isGitDirectoryCommand = "git rev-parse --is-inside-work-tree";
+
+function isGitDirectory() {
+  var gitDirectoryCheck = shelljs.exec(isGitDirectoryCommand, {silent : true})
+                .stdout
+                .trim();
+  return "true" == gitDirectoryCheck;
+}
 
 function buildGitRepositoryUrl(gitBranchName, gitBaseUrl) {
   if ("master" == gitBranchName) {
@@ -62,6 +70,11 @@ function remoteBranchExists(localGitBranchName) {
 // Main run method
 function run() {
 
+  if (!isGitDirectory()) {
+    console.log("oops - not a git directory");
+    return;
+  }
+
   const gitBranchName = getGitBranchName();
   if (!remoteBranchExists(gitBranchName)) {
     console.log("remote branch doesn't exist - try pushing");
@@ -76,7 +89,6 @@ function run() {
     .parse(process.argv);
     
   if (!program.issues && !program.pulls) {
-    console.log(buildGitRepositoryUrl(gitBranchName, getGitBaseUrl()));
     open(buildGitRepositoryUrl(gitBranchName, getGitBaseUrl()));
     return;
   }
