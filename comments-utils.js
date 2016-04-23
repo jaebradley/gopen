@@ -1,6 +1,14 @@
 'use es6';
 
+var GitHubApi = require("github");
+var fs = require('fs');
+var open = require('open');
+var colors = require('colors');
+
 const settingsFile = "/Users/jaebradley/.opengitrc.json";
+const github = new GitHubApi({
+    version: "3.0.0"
+});
 
 function isValidComments(commentsData) {
   return commentsData.length == 1;
@@ -36,24 +44,34 @@ function translateCommentsData(commentsData) {
   return translatedCommentsData;
 }
 
-function retrievePullRequestCommentsFromGitHub(number, callback) {
+function retrievePullRequestCommentsFromGitHub(user, repo, number, callback) {
   github.pullRequests.getComments({
-    'user': GitUtils.getUserName(),
-    'repo': 'programmingProblems',
+    'user': user,
+    'repo': repo,
     'number': number
   }, function(err, res) {
-    callback(res);
+      callback(res);
   });
 }
 
-function writePullRequestComments(pullRequestComments) {
+function retrieveIndexedPullRequestCommentsFromGitHub(user, repo, number, index, callback) {
+  github.pullRequests.getComments({
+    'user': user,
+    'repo': repo,
+    'number': number
+  }, function(err, res) {
+    callback(res, index);
+  });
+}
+
+function writePullRequestCommentsToMemory(comments) {
   fs.stat(settingsFile, function(err) {
-    const pullRequestComments = generateTranslatedComments(pullRequestComments);
+    const translatedComments = translateCommentsData(comments);
     if (err) {
-      fs.writeFile(settingsFile, JSON.stringify({'pullRequestComments': pullRequestComments}));
+      fs.writeFile(settingsFile, JSON.stringify({'pullRequestComments': translatedComments}));
     } else {
       var settings = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
-      settings.pullRequestComments = pullRequestComments;
+      settings.pullRequestComments = translatedComments;
       fs.writeFile(settingsFile, JSON.stringify(settings));
     }
   });
@@ -69,16 +87,18 @@ function retrieveIndexedPullRequestCommentFromMemory(index) {
 
 }
 
+
 function formatIndexedPullRequestComment(comment, index) {
   return index + ' | ' +
          comment['body'] + ' | ' +
          comment['created_at'];
 }
 
-function logDetailedPullRequestComment(pullRequestCommentData) {
-  console.log('Diff:'.underline.red + ' ' + pullRequestCommentData.diff_hunk.green);
-  console.log('Comment:'.underline.red +  ' ' +pullRequestCommentData['body'].green);
-  console.log('Created At:'.underline.red +  ' ' +pullRequestCommentData['created_at'].green);
+function logDetailedPullRequestComment(comments, index) {
+  const comment = comments[index];
+  console.log('Diff:'.underline.red + ' ' + comment.diff_hunk.green);
+  console.log('Comment:'.underline.red +  ' ' +comment.body.green);
+  console.log('Created At:'.underline.red +  ' ' +comment.created_at.green);
 }
 
 function logPullRequestComments(comments) {
@@ -87,10 +107,33 @@ function logPullRequestComments(comments) {
   }
 }
 
+function storeAndLogComments(comments) {
+  writePullRequestCommentsToMemory(comments);
+  logPullRequestComments(comments);
+}
+
+function openPullRequestComment(comments, index) {
+  open(comments[index].html_url);
+}
+
 module.exports = {
   generateTranslatedComments: function(commentsData) {
     if (isValidComments(commentsData)) {
       return translateCommentsData(commentsData);
     }
+  },
+
+  logPullRequestComments: function(user, repo, number) {
+    console.log('Comments:'.underline.red + ' ');
+    retrievePullRequestCommentsFromGitHub(user, repo, number, storeAndLogComments);
+  },
+
+  logPullRequestComment: function(user, repo, number, index, shouldOpen) {
+    if (shouldOpen) {
+      retrieveIndexedPullRequestCommentsFromGitHub(user, repo, number, index, openPullRequestComment);
+      return;
+    }
+
+    retrieveIndexedPullRequestCommentsFromGitHub(user, repo, number, index, logDetailedPullRequestComment);
   }
 };

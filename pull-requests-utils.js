@@ -1,8 +1,15 @@
 'use es6';
 
 var colors = require('colors');
-const settingsFile = "/Users/jaebradley/.opengitrc.json";
+var GitHubApi = require("github");
+var fs = require('fs');
+var colors = require('colors');
+var open = require('open');
 
+const settingsFile = "/Users/jaebradley/.opengitrc.json";
+const github = new GitHubApi({
+    version: "3.0.0"
+});
 
 function isValidPullRequestsData(pullRequestsData) {
   return pullRequestsData.length == 1;
@@ -81,7 +88,7 @@ function retrievePullRequestsFromGitHub(user, repo, state, callback) {
 
 function writePullRequestsToMemory(pullRequests) {
   fs.stat(settingsFile, function(err) {
-    const filteredPullRequests = generateFilteredPullRequestsData(pullRequests);
+    const filteredPullRequests = filterPullRequestsData(pullRequests);
     if (err) {
       fs.writeFile(settingsFile, JSON.stringify({'pullRequests': filteredPullRequests}));
     } else {
@@ -94,8 +101,8 @@ function writePullRequestsToMemory(pullRequests) {
 
 function retrievePullRequestFromMemory(index) {
   var settings = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
-  if (indexValue < settings.pullRequests.length) {
-    return settings.pullRequests[indexValue];
+  if (index < settings.pullRequests.length) {
+    return settings.pullRequests[index];
   }
 
   console.log('can only accept index values between 0 and ' + settings.length - 1);
@@ -141,11 +148,14 @@ module.exports = {
 
   logPullRequest: function(index, shouldOpen) {
     const pullRequest = retrievePullRequestFromMemory(index);
-    console.log("Pull Request:".underline.red +  ' ' +
-                formatShortPullRequest(pullRequest).underline.green);
     if (shouldOpen) {
       open(pullRequest.html_url);
+      return;
     }
+
+    console.log("Pull Request:".underline.red +  ' ' +
+                formatShortPullRequest(pullRequest).green);
+    
   },
 
   getPullRequestNumber: function(index) {
