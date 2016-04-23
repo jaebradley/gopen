@@ -9,6 +9,9 @@ var CommentsUtils = require("./comments-utils");
 
 var program = require('commander');
 var fs = require('fs');
+var open = require('open');
+var diff2Html = require('diff2html');
+var colors = require('colors');
 
 const settingsFile = "/Users/jaebradley/.opengitrc.json";
 
@@ -18,11 +21,12 @@ const github = new GitHubApi({
 
 const cl = program
             .version('0.0.1')
-            .option('-c --closed', 'lookup closed pull requests')
-            .option('-a --all', 'lookup all pull requests')
+            .option('-c --comments <n>', 'lookup comments for pull request with index value', parseInt)
             .option('-i --index <n>', 'lookup pull request with index value', parseInt)
+            .option('-o --open', 'open the pull request attribute')
             .parse(process.argv);
 
+// Pull Requests
 function writePullRequests(pullRequests) {
   fs.stat(settingsFile, function(err) {
     if (err) {
@@ -37,21 +41,11 @@ function writePullRequests(pullRequests) {
 
 function getIndexedPullRequestFromMemory(indexValue) {
   var settings = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
-  if (indexValue < settings.pullRequests.length) {  
+  if (indexValue < settings.pullRequests.length) {
     return settings.pullRequests[indexValue];
   }
 
   console.log('can only accept index values between 0 and ' + settings.length - 1);
-}
-
-function getPullRequest(requestNumber) {
-  github.pullRequests.get({
-    'user': GitUtils.getUserName(),
-    'repo': GitUtils.getRepositoryName(),
-    'number': requestNumber
-  }, function(err, res) {
-    return res;
-  });
 }
 
 function getAllPullRequests(state) {
@@ -61,24 +55,88 @@ function getAllPullRequests(state) {
     'state': state
   }, function(err, res) {
     writePullRequests(res);
-    logAllPullRequests(res);
+    logPullRequests(PullRequestsUtils.generateFilteredPullRequestsData(res));
   });
 }
 
+function logPullRequest(pullRequestData, index) {
+  return (index + ' | #' + pullRequestData['number'] + ' | ' +
+               pullRequestData['title'] + ' | ' +
+              pullRequestData['created_at']).green;
+}
+
+function logShortPullRequest(pullRequestData) {
+  return ('#' + pullRequestData['number'] + ' | ' +
+               pullRequestData['title'] + ' | ' +
+              pullRequestData['created_at']).green;
+}
+
+function logPullRequests(pullRequestsData) {
+  for (i = 0; i < pullRequestsData.length; i++) {
+    console.log(logPullRequest(pullRequestsData[i], i));
+  }
+}
+
+// Pull Request Comments
 function getAllPullRequestComments(number) {
   github.pullRequests.getComments({
     'user': GitUtils.getUserName(),
     'repo': 'programmingProblems',
     'number': number
   }, function(err, res) {
-    console.log(res);
+    const translatedComments = CommentsUtils.generateTranslatedComments(res);
+    writePullRequestComments(translatedComments);
+    logPullRequestComments(translatedComments);
   });
 }
 
-function logPullRequest(pullRequestData) {
-  console.log('#' + pullRequestData['number'] + ' | ' +
-               pullRequestData['title'] + ' | ' +
-              pullRequestData['created_at']);
+function getPullRequestComment(number, index) {
+  github.pullRequests.getComments({
+    'user': GitUtils.getUserName(),
+    'repo': 'programmingProblems',
+    'number': number
+  }, function(err, res) {
+    const translatedComments = CommentsUtils.generateTranslatedComments(res);
+    writePullRequestComments(translatedComments);
+    logDetailedPullRequestComment(translatedComments[index]);
+  });
+}
+
+function writePullRequestComments(pullRequestComments) {
+  fs.stat(settingsFile, function(err) {
+    if (err) {
+      fs.writeFile(settingsFile, JSON.stringify({'pullRequestComments': CommentsUtils.generateTranslatedComments(pullRequestComments)}));
+    } else {
+      var settings = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
+      settings.pullRequestComments = CommentsUtils.generateTranslatedComments(pullRequestComments);
+      fs.writeFile(settingsFile, JSON.stringify(settings));
+    }
+  });
+}
+
+function getIndexedPullRequestCommentFromMemory(indexValue) {
+  var settings = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
+  if (indexValue < settings.pullRequestComments.length) {
+    return settings.pullRequestComments[indexValue];
+  }
+
+  console.log('can only accept index values between 0 and ' + settings.length - 1);
+}
+
+function logPullRequestComment(pullRequestCommentData, index) {
+  console.log((index + ' | ' + pullRequestCommentData['body'] + ' | ' + pullRequestCommentData['created_at']).green);
+}
+
+function logDetailedPullRequestComment(pullRequestCommentData) {
+  console.log('Diff:'.underline.red + ' ' + pullRequestCommentData.diff_hunk.green);
+  console.log('Comment:'.underline.red +  ' ' +pullRequestCommentData['body'].green);
+  console.log('Created At:'.underline.red +  ' ' +pullRequestCommentData['created_at'].green);
+}
+
+function logPullRequestComments(pullRequestCommentsData) {
+  for (i = 0; i < pullRequestCommentsData.length; i++) {
+    logPullRequestComment(pullRequestCommentsData[i], i);
+  }
 }
 
 function getShortPullRequestDetails(pullRequestData) {
@@ -91,20 +149,19 @@ function getShortPullRequestDetails(pullRequestData) {
 
 function pullRequests() {
 
-  // if (!cl.closed && !cl.all) {
-  //   getAllPullRequests("open");
-  // }
-
-  // if (cl.closed) {
-  //   getAllPullRequests("closed");
-  // }
-
-  // if (cl.all) {
-  //   getAllPullRequests("all");
-  // }
-
-  if (cl.index !== null) {
-    logPullRequest((getIndexedPullRequestFromMemory(cl.number)));
+  
+  if (typeof cl.index !== "undefined") {
+    console.log("Pull Request:".underline.red +  ' ' + logShortPullRequest(getIndexedPullRequestFromMemory(cl.index)));
+    const pullRequestNumber = getShortPullRequestDetails(getIndexedPullRequestFromMemory(cl.index)).number;
+    if (typeof cl.comments !== "undefined") {
+      getPullRequestComment(pullRequestNumber, cl.comments);
+    } else {
+      console.log("Comments:".underline.red + ' ');
+      getAllPullRequestComments(pullRequestNumber);
+    }
+  } else {
+    console.log("Pull Requests:".underline.red + ' ');
+    getAllPullRequests("open");
   }
 
 }

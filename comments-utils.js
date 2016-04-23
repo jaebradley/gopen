@@ -13,7 +13,7 @@ function isValidComment(commentData) {
          'html_url' in commentData;
 }
 
-function translateCommentData(commentData) {
+function translatedCommentData(commentData) {
   return {
     url: commentData['url'],
     id: commentData['id'],
@@ -25,10 +25,10 @@ function translateCommentData(commentData) {
 }
 
 function translateCommentsData(commentsData) {
-  const translatedCommentsData = {};
-  commentData[0].forEach(function(commentData) {
+  const translatedCommentsData = [];
+  commentsData.forEach(function(commentData) {
     if (isValidComment(commentData)) {
-      translatedCommentsData.push(translateCommentData(commentData));
+      translatedCommentsData.push(translatedCommentData(commentData));
     }
   });
   return translatedCommentsData;
@@ -37,7 +37,7 @@ function translateCommentsData(commentsData) {
 module.exports = {
   generateTranslatedComments: function(commentsData) {
     if (isValidComments(commentsData)) {
-      return translatedCommentsData(commentsData);
+      return translateCommentsData(commentsData);
     }
   }
 };
