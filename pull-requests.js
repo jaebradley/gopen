@@ -102,6 +102,17 @@ function getPullRequestComment(number, index) {
   });
 }
 
+function openPullRequestComment(number, index) {
+  github.pullRequests.getComments({
+    'user': GitUtils.getUserName(),
+    'repo': 'programmingProblems',
+    'number': number
+  }, function(err, res) {
+    const translatedComments = CommentsUtils.generateTranslatedComments(res);
+    open(translatedComments[index].html_url);
+  });
+}
+
 function writePullRequestComments(pullRequestComments) {
   fs.stat(settingsFile, function(err) {
     if (err) {
@@ -149,15 +160,23 @@ function getShortPullRequestDetails(pullRequestData) {
 
 function pullRequests() {
 
-  
   if (typeof cl.index !== "undefined") {
     console.log("Pull Request:".underline.red +  ' ' + logShortPullRequest(getIndexedPullRequestFromMemory(cl.index)));
+    const pullRequestUrl = getIndexedPullRequestFromMemory(cl.index).html_url;
     const pullRequestNumber = getShortPullRequestDetails(getIndexedPullRequestFromMemory(cl.index)).number;
     if (typeof cl.comments !== "undefined") {
-      getPullRequestComment(pullRequestNumber, cl.comments);
+      if (typeof cl.open !== "undefined") {
+        openPullRequestComment(pullRequestNumber, cl.comments);
+      } else {
+        getPullRequestComment(pullRequestNumber, cl.comments);
+      }
     } else {
-      console.log("Comments:".underline.red + ' ');
-      getAllPullRequestComments(pullRequestNumber);
+      if (typeof cl.open !== "undefined") {
+        open(pullRequestUrl);
+      } else {
+        console.log("Comments:".underline.red + ' ');
+        getAllPullRequestComments(pullRequestNumber);  
+      }
     }
   } else {
     console.log("Pull Requests:".underline.red + ' ');
