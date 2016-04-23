@@ -1,5 +1,9 @@
 'use es6';
 
+var colors = require('colors');
+const settingsFile = "/Users/jaebradley/.opengitrc.json";
+
+
 function isValidPullRequestsData(pullRequestsData) {
   return pullRequestsData.length == 1;
 }
@@ -65,8 +69,86 @@ function filterPullRequestsData(pullRequestsData) {
   return filteredPullRequestData;
 }
 
+function retrievePullRequestsFromGitHub(user, repo, state, callback) {
+  github.pullRequests.getAll({
+    'user': user,
+    'repo': repo,
+    'state': state
+  }, function(err, res) {
+      callback(res);
+  });
+}
+
+function writePullRequestsToMemory(pullRequests) {
+  fs.stat(settingsFile, function(err) {
+    const filteredPullRequests = generateFilteredPullRequestsData(pullRequests);
+    if (err) {
+      fs.writeFile(settingsFile, JSON.stringify({'pullRequests': filteredPullRequests}));
+    } else {
+      var settings = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
+      settings.pullRequests = filteredPullRequests;
+      fs.writeFile(settingsFile, JSON.stringify(settings));
+    }
+  });
+}
+
+function retrievePullRequestFromMemory(index) {
+  var settings = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
+  if (indexValue < settings.pullRequests.length) {
+    return settings.pullRequests[indexValue];
+  }
+
+  console.log('can only accept index values between 0 and ' + settings.length - 1);
+}
+
+function formatShortPullRequest(pullRequestData) {
+  return (
+    '#' + pullRequestData['number'] + ' | ' +
+    pullRequestData['title'] + ' | ' +
+    pullRequestData['created_at']
+  );
+}
+
+function formatIndexedPullRequest(pullRequestData, index) {
+  return (
+    index + ' | #' +
+    pullRequestData['number'] + ' | ' +
+    pullRequestData['title'] + ' | ' +
+    pullRequestData['created_at']
+  );
+}
+
+function logIndexedFormattedPullRequests(pullRequests) {
+  for (i = 0; i < pullRequests.length; i++) {
+    console.log(formatIndexedPullRequest(pullRequests[i], i));
+  }
+}
+
+function storeAndLogPullRequests(pullRequests) {
+  writePullRequestsToMemory(pullRequests);
+  logIndexedFormattedPullRequests(pullRequests);
+}
+
 module.exports = {
   generateFilteredPullRequestsData: function(pullRequestsData) {
     return filterPullRequestsData(pullRequestsData);
+  },
+
+  logAllOpenPullRequests: function(user, repo) {
+    console.log('Open Pull Requests'.underline.red + ' ');
+    retrievePullRequestsFromGitHub(user, repo, 'open', storeAndLogPullRequests);
+  },
+
+  logPullRequest: function(index, shouldOpen) {
+    const pullRequest = retrievePullRequestFromMemory(index);
+    console.log("Pull Request:".underline.red +  ' ' +
+                formatShortPullRequest(pullRequest).underline.green);
+    if (shouldOpen) {
+      open(pullRequest.html_url);
+    }
+  },
+
+  getPullRequestNumber: function(index) {
+    return retrievePullRequestFromMemory(index).number;
   }
 };
