@@ -5,6 +5,7 @@
 var shelljs = require('shelljs');
 var program = require('commander');
 var open = require('open');
+var GitHubApi = require("github");
 
 const gitBranchCommand = "git rev-parse --abbrev-ref HEAD";
 const gitRemotOriginUrlCommand = "git config remote.origin.url";
@@ -12,6 +13,21 @@ const gitRemoteBranchesCommand = "git branch -r";
 const gitHubUserIssues = "https://github.com/issues";
 const gitHubPullRequests = "https://github.com/pulls";
 const isGitDirectoryCommand = "git rev-parse --is-inside-work-tree";
+const github = new GitHubApi({
+    version: "3.0.0"
+  });
+
+function getAllPullRequests() {
+  var results = github.pullRequests.getAll({
+    'user': 'jaebradley',
+    'repo': 'programmingProblems'
+  }, function(err, res) {
+    console.log(JSON.stringify(res));
+  });
+
+}
+
+getAllPullRequests();
 
 function isGitDirectory() {
   var gitDirectoryCheck = shelljs.exec(isGitDirectoryCommand, {silent : true})
@@ -111,4 +127,4 @@ function run() {
 
 }
 
-run();
+// run();

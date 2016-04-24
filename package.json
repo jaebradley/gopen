@@ -9,12 +9,14 @@
   "license": "MIT",
   "preferGlobal": true,
   "bin": {
-    "opengit": "git-open.js"
+    "pr": "pull-requests.js"
   },
   "dependencies": {
     "commander": "^2.9.0",
     "open": "^0.0.5",
-    "shelljs": "^0.6.0"
+    "shelljs": "^0.6.0",
+    "github": "^0.2.4",
+    "colors": "latest"
   },
   "repository": {
      "type": "git",
