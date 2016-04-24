@@ -10,7 +10,7 @@ var program = require('commander');
 
 const cl = program
             .version('0.0.1')
-            .option('-c --comments <n>', 'lookup comments for pull request with index value', parseInt)
+            .option('-c --comments <i>', 'lookup comments for pull request with index value', parseInt)
             .option('-p --pullrequests <n>', 'lookup pull request with index value', parseInt)
             .option('-o --open', 'open the pull request attribute')
             .parse(process.argv);
@@ -37,11 +37,11 @@ function pullRequests() {
       return;
     } else if (isIndividualCommentSpecified()) {
       if (shouldOpen()) {
-        CommentsUtils.logPullRequestComment(user, repo, pullRequestNumber, cl.pullrequests, true);
+        CommentsUtils.logPullRequestComment(user, repo, pullRequestNumber, cl.comments, true);
         return;
       } else {
         PullRequestsUtils.logPullRequest(cl.pullrequests, false);
-        CommentsUtils.logPullRequestComment(user, repo, pullRequestNumber, cl.pullrequests, false);
+        CommentsUtils.logPullRequestComment(user, repo, pullRequestNumber, cl.comments, false);
         return;
       }
     }
