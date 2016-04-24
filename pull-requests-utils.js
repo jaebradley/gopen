@@ -5,8 +5,9 @@ var GitHubApi = require("github");
 var fs = require('fs');
 var colors = require('colors');
 var open = require('open');
+var os = require('os');
 
-const settingsFile = "/Users/jaebradley/.opengitrc.json";
+const settingsFile = os.homedir() + "/.opengitrc.json";
 const github = new GitHubApi({
     version: "3.0.0"
 });

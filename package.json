@@ -9,7 +9,7 @@
   "license": "MIT",
   "preferGlobal": true,
   "bin": {
-    "opengit": "pull-requests.js"
+    "pr": "pull-requests.js"
   },
   "dependencies": {
     "commander": "^2.9.0",
