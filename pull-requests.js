@@ -2,22 +2,11 @@
 
 'use es6';
 
-var GitHubApi = require("github");
 var GitUtils = require("./git-utils");
 var PullRequestsUtils = require("./pull-requests-utils");
 var CommentsUtils = require("./comments-utils");
 
 var program = require('commander');
-var fs = require('fs');
-var open = require('open');
-var diff2Html = require('diff2html');
-var colors = require('colors');
-
-const settingsFile = "/Users/jaebradley/.opengitrc.json";
-
-const github = new GitHubApi({
-    version: "3.0.0"
-});
 
 const cl = program
             .version('0.0.1')
@@ -36,7 +25,7 @@ function shouldOpen() {
 
 function pullRequests() {
   const user = GitUtils.getUserName();
-  const repo = 'programmingProblems';
+  const repo = GitUtils.getRepositoryName();
   if (typeof cl.pullrequests !== "undefined") {
     const pullRequestNumber = PullRequestsUtils.getPullRequestNumber(cl.pullrequests);
     if (!isIndividualCommentSpecified() && shouldOpen()) {

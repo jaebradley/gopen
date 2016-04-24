@@ -4,8 +4,9 @@ var GitHubApi = require("github");
 var fs = require('fs');
 var open = require('open');
 var colors = require('colors');
+var os = require('os');
 
-const settingsFile = "/Users/jaebradley/.opengitrc.json";
+const settingsFile = os.homedir() + "/.opengitrc.json";
 const github = new GitHubApi({
     version: "3.0.0"
 });
@@ -103,7 +104,7 @@ function logDetailedPullRequestComment(comments, index) {
 
 function logPullRequestComments(comments) {
   for (i = 0; i < comments.length; i++) {
-    console.log(formatIndexedPullRequestComment(comments[i], i));
+    console.log(formatIndexedPullRequestComment(comments[i], i).green);
   }
 }
 
@@ -117,11 +118,6 @@ function openPullRequestComment(comments, index) {
 }
 
 module.exports = {
-  generateTranslatedComments: function(commentsData) {
-    if (isValidComments(commentsData)) {
-      return translateCommentsData(commentsData);
-    }
-  },
 
   logPullRequestComments: function(user, repo, number) {
     console.log('Comments:'.underline.red + ' ');

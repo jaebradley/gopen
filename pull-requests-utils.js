@@ -137,9 +137,6 @@ function storeAndLogPullRequests(pullRequests) {
 }
 
 module.exports = {
-  generateFilteredPullRequestsData: function(pullRequestsData) {
-    return filterPullRequestsData(pullRequestsData);
-  },
 
   logAllOpenPullRequests: function(user, repo) {
     console.log('Open Pull Requests'.underline.red + ' ');
