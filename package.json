@@ -1,6 +1,6 @@
 {
   "name": "opengit",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "opens git",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -16,7 +16,8 @@
     "open": "^0.0.5",
     "shelljs": "^0.6.0",
     "github": "^0.2.4",
-    "colors": "latest"
+    "colors": "latest",
+    "os": "latest"
   },
   "repository": {
      "type": "git",
