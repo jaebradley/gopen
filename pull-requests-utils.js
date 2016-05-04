@@ -34,10 +34,6 @@ function isValidPullRequestData(pullRequestData) {
 }
 
 function translatePullRequestData(pullRequestData) {
-  if (!isValidPullRequestData(pullRequestData)) {
-    // throw exception
-    return;
-  }
 
   return {
     'url' : pullRequestData['url'],
@@ -62,10 +58,6 @@ function translatePullRequestData(pullRequestData) {
 }
 
 function filterPullRequestsData(pullRequestsData) {
-  if (!isValidPullRequestsData(pullRequestsData)) {
-    // throw exception
-    return;
-  }
 
   const filteredPullRequestData = [];
   pullRequestsData.forEach(function(pullRequestData) {
