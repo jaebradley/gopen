@@ -26,27 +26,33 @@ function shouldOpen() {
 function pullRequests() {
   const user = GitUtils.getUserName();
   const repo = GitUtils.getRepositoryName();
-  if (typeof cl.pullrequests !== "undefined") {
-    const pullRequestNumber = PullRequestsUtils.getPullRequestNumber(cl.pullrequests);
-    if (!isIndividualCommentSpecified() && shouldOpen()) {
-      PullRequestsUtils.logPullRequest(cl.pullrequests, true);
-      return;
-    } else if (!isIndividualCommentSpecified() && !shouldOpen()) {
-      PullRequestsUtils.logPullRequest(cl.pullrequests, false);
-      CommentsUtils.logPullRequestComments(user, repo, pullRequestNumber);
-      return;
-    } else if (isIndividualCommentSpecified()) {
-      if (shouldOpen()) {
-        CommentsUtils.logPullRequestComment(user, repo, pullRequestNumber, cl.comments, true);
-        return;
-      } else {
-        PullRequestsUtils.logPullRequest(cl.pullrequests, false);
-        CommentsUtils.logPullRequestComment(user, repo, pullRequestNumber, cl.comments, false);
-        return;
-      }
-    }
+
+  if (GitUtils.isGitHubEnterprise() && !GitUtils.isAuthenticationDataInMemory()) {
+    GitUtils.promptAuthenticationData();
   } else {
-    PullRequestsUtils.logAllOpenPullRequests(user, repo);
+    const githubClient = GitUtils.getGitHubClient();
+    if (typeof cl.pullrequests !== "undefined") {
+      const pullRequestNumber = PullRequestsUtils.getPullRequestNumber(cl.pullrequests);
+      if (!isIndividualCommentSpecified() && shouldOpen()) {
+        PullRequestsUtils.logPullRequest(cl.pullrequests, true);
+        return;
+      } else if (!isIndividualCommentSpecified() && !shouldOpen()) {
+        PullRequestsUtils.logPullRequest(cl.pullrequests, false);
+        CommentsUtils.logPullRequestComments(githubClient, user, repo, pullRequestNumber);
+        return;
+      } else if (isIndividualCommentSpecified()) {
+        if (shouldOpen()) {
+          CommentsUtils.logPullRequestComment(githubClient, user, repo, pullRequestNumber, cl.comments, true);
+          return;
+        } else {
+          PullRequestsUtils.logPullRequest(cl.pullrequests, false);
+          CommentsUtils.logPullRequestComment(githubClient, user, repo, pullRequestNumber, cl.comments, false);
+          return;
+        }
+      }
+    } else {
+      PullRequestsUtils.logAllOpenPullRequests(githubClient, user, repo);
+    }
   }
 
 }
