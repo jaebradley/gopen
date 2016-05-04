@@ -35,6 +35,25 @@ function getEnterpriseHost(remoteOriginUrl) {
   return remoteOriginUrl.substring(8, remoteOriginUrl.lastIndexOf(".com/") + 4);
 }
 
+function promptAuthenticationData(host) {
+    console.log("gotta get some authentication information...");
+    prompt.get(
+      [
+        {
+          name: 'username',
+          required: true
+        },
+        {
+          name: 'password',
+          required: true,
+          hidden: true
+        }
+      ], function (err, result) {
+        console.log("ok, now try that again!");
+        writeAuthenticationDataToMemory(host, result.username, result.password);
+    });
+  }
+
 function testPassword(username, password) {
 
 }
@@ -54,27 +73,18 @@ function isAuthenticationDataInMemory(host) {
 }
 
 function writeAuthenticationDataToMemory(host, username, password) {
+  const authenticationData = {
+                                password: password,
+                                username: username
+                              };
   fs.stat(settingsFile, function(err) {
-    if (err) {
-      const authenticationData = {};
-      authenticationData[host] = {
-        password: password,
-        username: username
-      };
-      fs.writeFile(settingsFile, JSON.stringify(authenticationData));
-    } else {
-      var settings = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
-      settings[host] = {
-        password: password,
-        username: username
-      };
-      fs.writeFile(settingsFile, JSON.stringify(settings));
+    const settings = {};
+    if (!err) {
+      const settings = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
     }
+    settings[host] = authenticationData;
+    fs.writeFile(settingsFile, JSON.stringify(settings));
   });
-}
-
-function retrieveEnterpriseAuthenticationData(host) {
-  return getEnterpriseAuthenticationDataFromMemory(host);
 }
 
 function getEnterpriseAuthenticationDataFromMemory(host) {
@@ -84,7 +94,7 @@ function getEnterpriseAuthenticationDataFromMemory(host) {
 
 function getAuthenticatedEnterpriseGitHubClient(remoteOriginUrl) {
   const enterpriseHost = getEnterpriseHost(remoteOriginUrl);
-  const authenticationData = retrieveEnterpriseAuthenticationData(enterpriseHost);
+  const authenticationData = getEnterpriseAuthenticationDataFromMemory(enterpriseHost);
   const corporateGitHubClient = new GitHubApi({
       version: "3.0.0",
       pathPrefix: "/api/v3/",
@@ -132,21 +142,8 @@ module.exports = {
   },
 
   promptAuthenticationData: function() {
-    console.log("gotta get those deets...");
     const remoteOriginUrl = executeBasicShellCommand(remoteOriginUrlCommand);
-    prompt.get(
-      [
-        {
-          name: 'username',
-          required: true
-        },
-        {
-          name: 'password',
-          required: true
-        }
-      ], function (err, result) {
-        console.log("ok, now try that again!");
-        writeAuthenticationDataToMemory(getEnterpriseHost(remoteOriginUrl), result.username, result.password);
-    });
+    const host = getEnterpriseHost(remoteOriginUrl);
+    promptAuthenticationData(host);
   }
 };
