@@ -45,8 +45,8 @@ function translateCommentsData(commentsData) {
   return translatedCommentsData;
 }
 
-function retrievePullRequestCommentsFromGitHub(user, repo, number, callback) {
-  github.pullRequests.getComments({
+function retrievePullRequestCommentsFromGitHub(githubClient, user, repo, number, callback) {
+  githubClient.pullRequests.getComments({
     'user': user,
     'repo': repo,
     'number': number
@@ -55,8 +55,8 @@ function retrievePullRequestCommentsFromGitHub(user, repo, number, callback) {
   });
 }
 
-function retrieveIndexedPullRequestCommentsFromGitHub(user, repo, number, index, callback) {
-  github.pullRequests.getComments({
+function retrieveIndexedPullRequestCommentsFromGitHub(githubClient, user, repo, number, index, callback) {
+  githubClient.pullRequests.getComments({
     'user': user,
     'repo': repo,
     'number': number
@@ -119,17 +119,17 @@ function openPullRequestComment(comments, index) {
 
 module.exports = {
 
-  logPullRequestComments: function(user, repo, number) {
+  logPullRequestComments: function(githubClient, user, repo, number) {
     console.log('Comments:'.underline.red + ' ');
-    retrievePullRequestCommentsFromGitHub(user, repo, number, storeAndLogComments);
+    retrievePullRequestCommentsFromGitHub(githubClient, user, repo, number, storeAndLogComments);
   },
 
-  logPullRequestComment: function(user, repo, number, index, shouldOpen) {
+  logPullRequestComment: function(githubClient, user, repo, number, index, shouldOpen) {
     if (shouldOpen) {
-      retrieveIndexedPullRequestCommentsFromGitHub(user, repo, number, index, openPullRequestComment);
+      retrieveIndexedPullRequestCommentsFromGitHub(githubClient, user, repo, number, index, openPullRequestComment);
       return;
     }
 
-    retrieveIndexedPullRequestCommentsFromGitHub(user, repo, number, index, logDetailedPullRequestComment);
+    retrieveIndexedPullRequestCommentsFromGitHub(githubClient, user, repo, number, index, logDetailedPullRequestComment);
   }
 };

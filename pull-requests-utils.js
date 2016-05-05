@@ -8,9 +8,6 @@ var open = require('open');
 var os = require('os');
 
 const settingsFile = os.homedir() + "/.opengitrc.json";
-const github = new GitHubApi({
-    version: "3.0.0"
-});
 
 function isValidPullRequestsData(pullRequestsData) {
   return pullRequestsData.length == 1;
@@ -37,10 +34,6 @@ function isValidPullRequestData(pullRequestData) {
 }
 
 function translatePullRequestData(pullRequestData) {
-  if (!isValidPullRequestData(pullRequestData)) {
-    // throw exception
-    return;
-  }
 
   return {
     'url' : pullRequestData['url'],
@@ -65,10 +58,6 @@ function translatePullRequestData(pullRequestData) {
 }
 
 function filterPullRequestsData(pullRequestsData) {
-  if (!isValidPullRequestsData(pullRequestsData)) {
-    // throw exception
-    return;
-  }
 
   const filteredPullRequestData = [];
   pullRequestsData.forEach(function(pullRequestData) {
@@ -77,8 +66,8 @@ function filterPullRequestsData(pullRequestsData) {
   return filteredPullRequestData;
 }
 
-function retrievePullRequestsFromGitHub(user, repo, state, callback) {
-  github.pullRequests.getAll({
+function retrievePullRequestsFromGitHub(githubClient, user, repo, state, callback) {
+  githubClient.pullRequests.getAll({
     'user': user,
     'repo': repo,
     'state': state
@@ -139,9 +128,9 @@ function storeAndLogPullRequests(pullRequests) {
 
 module.exports = {
 
-  logAllOpenPullRequests: function(user, repo) {
+  logAllOpenPullRequests: function(githubClient, user, repo) {
     console.log('Open Pull Requests'.underline.red + ' ');
-    retrievePullRequestsFromGitHub(user, repo, 'open', storeAndLogPullRequests);
+    retrievePullRequestsFromGitHub(githubClient, user, repo, 'open', storeAndLogPullRequests);
   },
 
   logPullRequest: function(index, shouldOpen) {
@@ -153,7 +142,7 @@ module.exports = {
 
     console.log("Pull Request:".underline.red +  ' ' +
                 formatShortPullRequest(pullRequest).green);
-    
+
   },
 
   getPullRequestNumber: function(index) {
